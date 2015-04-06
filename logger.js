@@ -105,6 +105,6 @@ var mino_logger = {
 	}
 }
 
-mino_logger.set_level('debug');
+mino_logger.set_level('info');
 
 module.exports = mino_logger;
