@@ -1,6 +1,7 @@
 var logger = require('winston');
 var dateFormat = require('dateformat');
 var path = require('path');
+var util = require('util');
 
 var colors = {
     debug: 'green',
@@ -58,7 +59,7 @@ var format_message = function(message) {
 		try {
 			return JSON.stringify(message, null, 4);
 		} catch (err) {
-			return message;
+			return util.inspect(message);
 		}
 	} else {
 		return message;
