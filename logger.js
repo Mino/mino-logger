@@ -34,7 +34,7 @@ var formatter = function(options) {
 
 var analyze_stack = function() {
 	//Based on https://github.com/baryon/tracer/blob/master/lib/console.js
-	var stacklist = (new Error()).stack.split('\n').slice(3);
+	var stacklist = (new Error()).stack.split('\n').slice(4);
 	var stackReg = /at\s+(.*)\s+\((.*):(\d*):(\d*)\)/gi;
 	var stackReg2 = /at\s+()(.*):(\d*):(\d*)/gi;
 
@@ -105,6 +105,6 @@ var mino_logger = {
 	}
 }
 
-mino_logger.set_level('info');
+mino_logger.set_level('debug');
 
 module.exports = mino_logger;
