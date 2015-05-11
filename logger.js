@@ -1,4 +1,3 @@
-var logger = require('winston');
 var dateFormat = require('dateformat');
 var path = require('path');
 var util = require('util');
@@ -10,7 +9,6 @@ var colors = {
     warn:  'yellow',
     error: 'red'
 };
-logger.addColors(colors);
 
 var levels = {
 	"silent": 0,
@@ -19,36 +17,6 @@ var levels = {
 	"info": 3,
 	"debug": 4
 };
-
-var format = "text";
-
-var formatter = function(options) {
-    var time = dateFormat(new Date(), "isoDateTime");
-    var colored_level = options.level.toUpperCase()[colors[options.level]] || '';
-    var file = options.meta.file || '';
-    var line = options.meta.line || '';
-    var method = options.method || '';
-    var message = options.message || '';
-
-    var output;
-    if (format === "json") {
-        output = JSON.stringify({
-            time: time,
-            level: options.level,
-            stack: {
-                file: file,
-                line: line,
-                file_line: file + ":" + line,
-                method: method
-            },
-            data: message
-        });
-    } else {
-    	output = time + ' <' + colored_level + '> ' + file + ':' + line + ' (' + method +') ' + message;
-    }
-    return output;
-};
-
 
 var analyze_stack = function() {
 	//Based on https://github.com/baryon/tracer/blob/master/lib/console.js
@@ -71,41 +39,23 @@ var analyze_stack = function() {
 	return data;
 };
 
-var format_message = function(message) {
-	if (format !== "json" && typeof message === 'object') {
-		try {
-            return JSON.stringify(message, null, 4);
-		} catch (err) {
-			return util.inspect(message);
-		}
-	} else {
-		return message;
-	}
-};
-
 var mino_logger = {
 	set_level: function(level) {
 		mino_logger.current_level = level;
-		logger.remove(logger.transports.Console);
-		logger.add(logger.transports.Console, {
-			level: level,
-			colorize: true,
-			formatter: formatter
-		});
 	},
     set_format: function() {
-        format = arguments[0];
+        mino_logger.current_format = arguments[0];
     },
 	info: function() {
 		mino_logger.log("info", arguments);
 	},
-	debug: function(message, meta) {
+	debug: function() {
 		mino_logger.log("debug", arguments);
 	},
-	warn: function(message, meta) {
+	warn: function() {
 		mino_logger.log("warn", arguments);
 	},
-	error: function(message, meta) {
+	error: function() {
 		mino_logger.log("error", arguments);
 	},
 	log: function(level, args) {
@@ -114,17 +64,57 @@ var mino_logger = {
 			return;
 		}
 
-		var message = format_message(args[0]);
+        var options = analyze_stack();
+        options.level = level;
+
+		console.log(mino_logger.format(args[0], options));
 
 		for (var i=1; i<args.length; i++) {
-			message += ' ' + format_message(args[i]);
+            console.log(mino_logger.format(args[i], options));
 		}
 
-		var meta = analyze_stack();
-		logger.log(level, message, meta);
-	}
+	},
+    format: function(message, options) {
+        if (mino_logger.current_format !== "json" && typeof message === 'object') {
+    		try {
+                message = JSON.stringify(message, null, 4);
+    		} catch (err) {
+    			message = util.inspect(message);
+    		}
+    	}
+
+        var time = dateFormat(new Date(), "isoDateTime");
+        var colored_level = options.level.toUpperCase()[colors[options.level]] || '';
+        var file = options.file || '';
+        var line = options.line || '';
+        var method = options.method || '';
+
+        var output;
+        if (mino_logger.current_format === "json") {
+            var object = {
+                time: time,
+                level: options.level,
+                stack: {
+                    file: file,
+                    line: line,
+                    file_line: file + ":" + line,
+                    method: method
+                },
+                data: message
+            };
+            try {
+                output = JSON.stringify(object);
+            } catch (err) {
+                output = util.inspect(output);
+            }
+        } else {
+        	output = time + ' <' + colored_level + '> ' + file + ':' + line + ' (' + method +') ' + message;
+        }
+        return output;
+    }
 };
 
 mino_logger.set_level('info');
+mino_logger.set_format('text');
 
 module.exports = mino_logger;
