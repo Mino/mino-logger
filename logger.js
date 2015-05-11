@@ -20,18 +20,33 @@ var levels = {
 	"debug": 4
 };
 
-var json_prettyprint = false;
+var format = "text";
 
 var formatter = function(options) {
-	var time = dateFormat(new Date(), "isoDateTime");
-	var level = options.level.toUpperCase()[colors[options.level]] || '';
-	var file = options.meta.file || '';
-	var line = options.meta.line || '';
-	var method = options.method || '';
-	var message = options.message || '';
+    var time = dateFormat(new Date(), "isoDateTime");
+    var colored_level = options.level.toUpperCase()[colors[options.level]] || '';
+    var file = options.meta.file || '';
+    var line = options.meta.line || '';
+    var method = options.method || '';
+    var message = options.message || '';
 
-	var output = time + ' <' + level + '> ' + file + ':' + line + ' (' + method +') ' + message;
-	return output;
+    var output;
+    if (format === "json") {
+        output = JSON.stringify({
+            time: time,
+            level: options.level,
+            stack: {
+                file: file,
+                line: line,
+                file_line: file + ":" + line,
+                method: method
+            },
+            data: message
+        });
+    } else {
+    	output = time + ' <' + colored_level + '> ' + file + ':' + line + ' (' + method +') ' + message;
+    }
+    return output;
 };
 
 
@@ -57,13 +72,9 @@ var analyze_stack = function() {
 };
 
 var format_message = function(message) {
-	if (typeof message === 'object') {
+	if (format !== "json" && typeof message === 'object') {
 		try {
-            if (json_prettyprint) {
-                return JSON.stringify(message, null, 4);
-            } else {
-                return JSON.stringify(message);
-            }
+            return JSON.stringify(message, null, 4);
 		} catch (err) {
 			return util.inspect(message);
 		}
@@ -82,8 +93,8 @@ var mino_logger = {
 			formatter: formatter
 		});
 	},
-    set_json_prettyprint: function() {
-        json_prettyprint = arguments[0];
+    set_format: function() {
+        format = arguments[0];
     },
 	info: function() {
 		mino_logger.log("info", arguments);
@@ -115,6 +126,5 @@ var mino_logger = {
 };
 
 mino_logger.set_level('info');
-mino_logger.set_json_prettyprint(false);
 
 module.exports = mino_logger;
