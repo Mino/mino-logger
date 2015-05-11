@@ -9,7 +9,7 @@ var colors = {
     silly: 'magenta',
     warn:  'yellow',
     error: 'red'
-}
+};
 logger.addColors(colors);
 
 var levels = {
@@ -18,7 +18,9 @@ var levels = {
 	"warn": 2,
 	"info": 3,
 	"debug": 4
-}
+};
+
+var json_prettyprint = false;
 
 var formatter = function(options) {
 	var time = dateFormat(new Date(), "isoDateTime");
@@ -30,7 +32,7 @@ var formatter = function(options) {
 
 	var output = time + ' <' + level + '> ' + file + ':' + line + ' (' + method +') ' + message;
 	return output;
-}
+};
 
 
 var analyze_stack = function() {
@@ -52,19 +54,23 @@ var analyze_stack = function() {
 	}
 
 	return data;
-}
+};
 
 var format_message = function(message) {
 	if (typeof message === 'object') {
 		try {
-			return JSON.stringify(message, null, 4);
+            if (json_prettyprint) {
+                return JSON.stringify(message, null, 4);
+            } else {
+                return JSON.stringify(message);
+            }
 		} catch (err) {
 			return util.inspect(message);
 		}
 	} else {
 		return message;
 	}
-}
+};
 
 var mino_logger = {
 	set_level: function(level) {
@@ -72,10 +78,13 @@ var mino_logger = {
 		logger.remove(logger.transports.Console);
 		logger.add(logger.transports.Console, {
 			level: level,
-			colorize: true, 
+			colorize: true,
 			formatter: formatter
 		});
 	},
+    set_json_prettyprint: function() {
+        json_prettyprint = arguments[0];
+    },
 	info: function() {
 		mino_logger.log("info", arguments);
 	},
@@ -94,8 +103,7 @@ var mino_logger = {
 			return;
 		}
 
-		var meta = {};
-		var message = format_message(args[0])
+		var message = format_message(args[0]);
 
 		for (var i=1; i<args.length; i++) {
 			message += ' ' + format_message(args[i]);
@@ -104,8 +112,9 @@ var mino_logger = {
 		var meta = analyze_stack();
 		logger.log(level, message, meta);
 	}
-}
+};
 
 mino_logger.set_level('info');
+mino_logger.set_json_prettyprint(false);
 
 module.exports = mino_logger;
