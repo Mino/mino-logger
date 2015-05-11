@@ -94,6 +94,7 @@ var mino_logger = {
             var object = {
                 time: time,
                 level: options.level,
+                severity: options.level,
                 stack: {
                     file: file,
                     line: line,
