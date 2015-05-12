@@ -1,3 +1,4 @@
+var colors = require('colors');
 var dateFormat = require('dateformat');
 var path = require('path');
 var util = require('util');
