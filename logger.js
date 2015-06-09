@@ -92,6 +92,14 @@ var mino_logger = {
 
         var output;
         if (mino_logger.current_format === "json") {
+            var data = message;
+            if (typeof data !== 'object') {
+                data = {
+                    action: "raw_text_log",
+                    message: message
+                };
+            }
+
             var object = {
                 time: time,
                 level: options.level,
@@ -102,7 +110,7 @@ var mino_logger = {
                     file_line: file + ":" + line,
                     method: method
                 },
-                data: message
+                data: data
             };
             try {
                 output = JSON.stringify(object);
