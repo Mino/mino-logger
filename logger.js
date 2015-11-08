@@ -7,7 +7,8 @@ var Logentries = require('le_node');
 var logentries;
 if (process.env.LOGENTRIES_ACCESS_TOKEN) {
   logentries = new Logentries({
-    token: process.env.LOGENTRIES_ACCESS_TOKEN
+    token: process.env.LOGENTRIES_ACCESS_TOKEN,
+    withStack: true
   });
 }
 
@@ -62,10 +63,10 @@ var mino_logger = {
     mino_logger.log("debug", arguments);
   },
   warn: function() {
-    mino_logger.log("warn", arguments);
+    mino_logger.log("warning", arguments);
   },
   error: function() {
-    mino_logger.log("error", arguments);
+    mino_logger.log("err", arguments);
   },
   log: function(level, args) {
 
