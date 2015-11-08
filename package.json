@@ -4,7 +4,8 @@
   "description": "",
   "main": "logger.js",
   "dependencies": {
+    "colors": "1.1.0",
     "dateformat": "*",
-    "colors": "1.1.0"
+    "le_node": "^1.1.1"
   }
 }
